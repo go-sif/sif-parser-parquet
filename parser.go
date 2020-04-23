@@ -40,11 +40,11 @@ func (p *Parser) Parse(r io.Reader, source sif.DataSource, schema sif.Schema, wi
 	if err != nil {
 		return nil, err
 	}
-	reader, err := reader.NewParquetColumnReader(parquetFile, int64(p.PartitionSize()))
 
 	iterator := &partitionIterator{
 		parser:              p,
-		parquetReader:       reader,
+		parquetFile:         parquetFile,
+		readers:             make(map[string]*reader.ParquetReader),
 		source:              source,
 		schema:              schema,
 		widestInitialSchema: widestInitialSchema,
