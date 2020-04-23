@@ -73,11 +73,12 @@ func TestParquetParser(t *testing.T) {
 		PartitionSize: 128,
 	})
 	schema := schema.CreateSchema()
-	schema.CreateColumn("id", &sif.Int32ColumnType{})
-	schema.CreateColumn("name", &sif.StringColumnType{Length: 12})
-	schema.CreateColumn("age", &sif.Int32ColumnType{})
-	schema.CreateColumn("weight", &sif.Float32ColumnType{})
-	dataframe := file.CreateDataFrame("*.parquet", parser, schema)
+	schema.CreateColumn("parquet_go_root.id", &sif.Int32ColumnType{})
+	schema.CreateColumn("parquet_go_root.name", &sif.StringColumnType{Length: 12})
+	schema.CreateColumn("parquet_go_root.age", &sif.Int32ColumnType{})
+	schema.CreateColumn("parquet_go_root.weight", &sif.Float32ColumnType{})
+	conf := &file.DataSourceConf{Glob: "*.parquet"}
+	dataframe := file.CreateDataFrame(conf, parser, schema)
 
 	pm, err := dataframe.GetDataSource().Analyze()
 	require.Nil(t, err, "Analyze err should be null")

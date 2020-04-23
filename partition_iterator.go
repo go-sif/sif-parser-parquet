@@ -16,7 +16,6 @@ type partitionIterator struct {
 	parquetReader       *reader.ParquetReader
 	finished            bool
 	source              sif.DataSource
-	colNames            []string
 	schema              sif.Schema
 	widestInitialSchema sif.Schema
 	lock                sync.Mutex
@@ -46,16 +45,21 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 		numRows = int64(pi.parser.PartitionSize())
 	}
 	colTypes := pi.schema.ColumnTypes()
+	colNames := pi.schema.ColumnNames()
 	part := datasource.CreateBuildablePartition(pi.parser.PartitionSize(), pi.widestInitialSchema, pi.schema)
 
 	// Parse data one *column* at a time, since parquet is column-focused
 	// https://parquet.apache.org/documentation/latest/
 	// https://blog.twitter.com/engineering/en_us/a/2013/dremel-made-simple-with-parquet.html
-	for i, name := range pi.colNames {
+	for i, name := range colNames {
 		colType := colTypes[i]
 		vals, repLevels, defLevels, err := pi.parquetReader.ReadColumnByPath(name, numRows)
 		if err != nil {
-			return nil, err
+			schemaElements := ""
+			for _, se := range pi.parquetReader.SchemaHandler.IndexMap {
+				schemaElements += fmt.Sprintf(" - %s\n", se)
+			}
+			return nil, fmt.Errorf("Unable to read column %s: %e\nSchema: \n%s", name, err, schemaElements)
 		}
 		if int64(len(vals)) < numRows {
 			if !pi.finished {

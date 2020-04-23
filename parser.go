@@ -2,7 +2,6 @@ package parquet
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 
 	"github.com/go-sif/sif"
@@ -43,16 +42,10 @@ func (p *Parser) Parse(r io.Reader, source sif.DataSource, schema sif.Schema, wi
 	}
 	reader, err := reader.NewParquetColumnReader(parquetFile, int64(p.PartitionSize()))
 
-	colNames := schema.ColumnNames()
-	for i, name := range colNames {
-		colNames[i] = fmt.Sprintf("parquet_go_root.%s", name)
-	}
-
 	iterator := &partitionIterator{
 		parser:              p,
 		parquetReader:       reader,
 		source:              source,
-		colNames:            colNames,
 		schema:              schema,
 		widestInitialSchema: widestInitialSchema,
 		endListeners:        []func(){},
