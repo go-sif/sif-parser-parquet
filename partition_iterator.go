@@ -99,8 +99,15 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 			for j := 0; int64(j) < rowsInFile; j++ {
 				// create empty rows for data if they don't already exist
 				partitionRowAddLock.Lock()
+				var row sif.Row
 				if j >= part.GetNumRows() {
-					part.AppendEmptyRowData()
+					row, err = part.AppendEmptyRowData()
+					if err != nil {
+						errorChan <- fmt.Errorf("Unable to append empty row to partition")
+						return
+					}
+				} else {
+					row = part.GetRow(j)
 				}
 				partitionRowAddLock.Unlock()
 				// TODO support nested values
@@ -113,7 +120,7 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 				if sif.IsVariableLength(colType) {
 					rowLocks[j].Lock()
 				}
-				err = parseValue(name, colType, vals[j], part.GetRow(j))
+				err = parseValue(name, colType, vals[j], row)
 				if err != nil {
 					errorChan <- err
 					return
