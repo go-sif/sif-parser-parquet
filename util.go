@@ -8,7 +8,6 @@ import (
 )
 
 func parseValue(colName string, colType sif.ColumnType, val interface{}, row sif.Row) error {
-	// TODO nil handling
 	if val == nil {
 		row.SetNil(colName)
 		return nil

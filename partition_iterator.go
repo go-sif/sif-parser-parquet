@@ -96,12 +96,13 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 			if int64(len(vals)) < rowsInFile {
 				rowsInFile = int64(len(vals))
 			}
+			tempRow := datasource.CreateTempRow()
 			for j := 0; int64(j) < rowsInFile; j++ {
 				// create empty rows for data if they don't already exist
 				partitionRowAddLock.Lock()
 				var row sif.Row
 				if j >= part.GetNumRows() {
-					row, err = part.AppendEmptyRowData()
+					row, err = part.AppendEmptyRowData(tempRow)
 					if err != nil {
 						errorChan <- fmt.Errorf("Unable to append empty row to partition")
 						return

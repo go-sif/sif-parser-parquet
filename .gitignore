@@ -1,0 +1,6 @@
+.vscode
+debug.test
+testenv/
+cover.out
+cover.html
+internal/test/*.parquet
