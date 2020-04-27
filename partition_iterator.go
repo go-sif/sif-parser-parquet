@@ -15,7 +15,9 @@ import (
 type partitionIterator struct {
 	parser              *Parser
 	parquetFile         source.ParquetFile
+	readerMapLock       sync.Mutex
 	readers             map[string]*reader.ParquetReader
+	readerLocks         map[string]*sync.Mutex
 	finished            bool
 	source              sif.DataSource
 	schema              sif.Schema
@@ -58,22 +60,29 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 	errorChan := make(chan error)
 	wgDone := make(chan bool)
 	for i, name := range colNames {
+		pi.readerMapLock.Lock()
 		if pi.readers[name] == nil {
 			reader, err := reader.NewParquetColumnReader(pi.parquetFile, int64(pi.parser.PartitionSize()))
 			if err != nil {
 				return nil, err
 			}
+			pi.readerLocks[name] = &sync.Mutex{}
 			pi.readers[name] = reader
 		}
+		pi.readerMapLock.Unlock()
 		wg.Add(1)
 		go func(idx int, name string) {
 			defer wg.Done()
+			pi.readerLocks[name].Lock()
 			numRows := pi.readers[name].GetNumRows()
+			pi.readerLocks[name].Unlock()
 			if int64(pi.parser.PartitionSize()) < numRows {
 				numRows = int64(pi.parser.PartitionSize())
 			}
 			colType := colTypes[idx]
+			pi.readerLocks[name].Lock()
 			vals, repLevels, defLevels, err := pi.readers[name].ReadColumnByPath(name, numRows)
+			pi.readerLocks[name].Unlock()
 			if err != nil {
 				schemaElements := ""
 				for _, se := range pi.readers[name].SchemaHandler.IndexMap {
@@ -144,7 +153,7 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 		// we're done!
 		break
 	case err := <-errorChan:
-		close(errorChan)
+		// close(errorChan) other routines might need to write errors
 		return nil, err
 	}
 

@@ -3,6 +3,7 @@ package parquet
 import (
 	"bytes"
 	"io"
+	"sync"
 
 	"github.com/go-sif/sif"
 	"github.com/xitongsys/parquet-go-source/buffer"
@@ -45,6 +46,7 @@ func (p *Parser) Parse(r io.Reader, source sif.DataSource, schema sif.Schema, wi
 		parser:              p,
 		parquetFile:         parquetFile,
 		readers:             make(map[string]*reader.ParquetReader),
+		readerLocks:         make(map[string]*sync.Mutex),
 		source:              source,
 		schema:              schema,
 		widestInitialSchema: widestInitialSchema,
