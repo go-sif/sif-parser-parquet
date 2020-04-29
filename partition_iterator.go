@@ -13,18 +13,18 @@ import (
 )
 
 type partitionIterator struct {
-	parser              *Parser
-	parquetFile         source.ParquetFile
-	readerMapLock       sync.Mutex
-	readers             map[string]*reader.ParquetReader
-	readerLocks         map[string]*sync.Mutex
-	finished            bool
-	source              sif.DataSource
-	schema              sif.Schema
-	widestInitialSchema sif.Schema
-	lock                sync.Mutex
-	doneLock            sync.Mutex
-	endListeners        []func()
+	parser                     *Parser
+	parquetFile                source.ParquetFile
+	readerMapLock              sync.Mutex
+	readers                    map[string]*reader.ParquetReader
+	readerLocks                map[string]*sync.Mutex
+	finished                   bool
+	source                     sif.DataSource
+	schema                     sif.Schema
+	widestInitialPrivateSchema sif.Schema
+	lock                       sync.Mutex
+	doneLock                   sync.Mutex
+	endListeners               []func()
 }
 
 // OnEnd registers a listener which fires when this iterator runs out of Partitions
@@ -47,7 +47,7 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 	defer pi.lock.Unlock()
 	colTypes := pi.schema.ColumnTypes()
 	colNames := pi.schema.ColumnNames()
-	part := datasource.CreateBuildablePartition(pi.parser.PartitionSize(), pi.widestInitialSchema, pi.schema)
+	part := datasource.CreateBuildablePartition(pi.parser.PartitionSize(), pi.widestInitialPrivateSchema, pi.schema)
 
 	// Parse data one *column* at a time, since parquet is column-focused
 	// https://parquet.apache.org/documentation/latest/
