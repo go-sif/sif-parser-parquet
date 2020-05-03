@@ -16,8 +16,8 @@ type partitionIterator struct {
 	parser                     *Parser
 	parquetFile                source.ParquetFile
 	readerMapLock              sync.Mutex
-	readers                    map[string]*reader.ParquetReader
-	readerLocks                map[string]*sync.Mutex
+	reader                     *reader.ParquetReader
+	readerLock                 *sync.Mutex
 	finished                   bool
 	source                     sif.DataSource
 	schema                     sif.Schema
@@ -60,34 +60,26 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 	errorChan := make(chan error)
 	wgDone := make(chan bool)
 	for i, name := range colNames {
-		pi.readerMapLock.Lock()
-		if pi.readers[name] == nil {
-			reader, err := reader.NewParquetColumnReader(pi.parquetFile, int64(pi.parser.PartitionSize()))
-			if err != nil {
-				return nil, err
-			}
-			pi.readerLocks[name] = &sync.Mutex{}
-			pi.readers[name] = reader
-		}
-		pi.readerMapLock.Unlock()
 		wg.Add(1)
 		go func(idx int, name string) {
 			defer wg.Done()
-			pi.readerLocks[name].Lock()
-			numRows := pi.readers[name].GetNumRows()
-			pi.readerLocks[name].Unlock()
+			pi.readerLock.Lock()
+			numRows := pi.reader.GetNumRows()
+			pi.readerLock.Unlock()
 			if int64(pi.parser.PartitionSize()) < numRows {
 				numRows = int64(pi.parser.PartitionSize())
 			}
 			colType := colTypes[idx]
-			pi.readerLocks[name].Lock()
-			vals, repLevels, defLevels, err := pi.readers[name].ReadColumnByPath(name, numRows)
-			pi.readerLocks[name].Unlock()
+			pi.readerLock.Lock()
+			vals, repLevels, defLevels, err := pi.reader.ReadColumnByPath(name, numRows)
+			pi.readerLock.Unlock()
 			if err != nil {
 				schemaElements := ""
-				for _, se := range pi.readers[name].SchemaHandler.IndexMap {
+				pi.readerLock.Lock()
+				for _, se := range pi.reader.SchemaHandler.IndexMap {
 					schemaElements += fmt.Sprintf(" - %s\n", se)
 				}
+				pi.readerLock.Unlock()
 				errorChan <- fmt.Errorf("Unable to read column %s: %e\nSchema: \n%s", name, err, schemaElements)
 				return
 			}
@@ -168,9 +160,6 @@ func (pi *partitionIterator) done() {
 	pi.doneLock.Lock()
 	defer pi.doneLock.Unlock()
 	pi.finished = true
-	// destroy readers
-	pi.readers = make(map[string]*reader.ParquetReader)
-	pi.readerLocks = make(map[string]*sync.Mutex)
 	// call endListeners
 	for _, l := range pi.endListeners {
 		l()
