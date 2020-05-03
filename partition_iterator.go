@@ -168,6 +168,10 @@ func (pi *partitionIterator) done() {
 	pi.doneLock.Lock()
 	defer pi.doneLock.Unlock()
 	pi.finished = true
+	// destroy readers
+	pi.readers = make(map[string]*reader.ParquetReader)
+	pi.readerLocks = make(map[string]*sync.Mutex)
+	// call endListeners
 	for _, l := range pi.endListeners {
 		l()
 	}
