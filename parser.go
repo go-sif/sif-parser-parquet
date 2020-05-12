@@ -34,7 +34,7 @@ func (p *Parser) PartitionSize() int {
 }
 
 // Parse parses Parquet data to produce Partitions
-func (p *Parser) Parse(r io.Reader, source sif.DataSource, schema sif.Schema, widestInitialPrivateSchema sif.Schema, onIteratorEnd func()) (sif.PartitionIterator, error) {
+func (p *Parser) Parse(r io.Reader, source sif.DataSource, schema sif.Schema, widestInitialSchema sif.Schema, onIteratorEnd func()) (sif.PartitionIterator, error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r)
 	parquetFile, err := buffer.NewBufferFile(buf.Bytes())
@@ -48,14 +48,14 @@ func (p *Parser) Parse(r io.Reader, source sif.DataSource, schema sif.Schema, wi
 
 	var readerLock sync.Mutex
 	iterator := &partitionIterator{
-		parser:                     p,
-		parquetFile:                parquetFile,
-		reader:                     reader,
-		readerLock:                 &readerLock,
-		source:                     source,
-		schema:                     schema,
-		widestInitialPrivateSchema: widestInitialPrivateSchema,
-		endListeners:               []func(){},
+		parser:              p,
+		parquetFile:         parquetFile,
+		reader:              reader,
+		readerLock:          &readerLock,
+		source:              source,
+		schema:              schema,
+		widestInitialSchema: widestInitialSchema,
+		endListeners:        []func(){},
 	}
 	if onIteratorEnd != nil {
 		iterator.OnEnd(onIteratorEnd)
