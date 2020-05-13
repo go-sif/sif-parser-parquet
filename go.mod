@@ -2,7 +2,7 @@ module github.com/go-sif/sif-parser-parquet
 
 require (
 	github.com/apache/thrift v0.13.0 // indirect
-	github.com/go-sif/sif v0.0.0-20200512032852-a8ad31358c0d
+	github.com/go-sif/sif v0.0.0-20200513041654-2f54577756ea
 	github.com/golang/protobuf v1.4.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
