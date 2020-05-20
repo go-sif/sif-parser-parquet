@@ -42,7 +42,7 @@ func (pi *partitionIterator) HasNextPartition() bool {
 }
 
 // NextPartition returns the next Partition if one is available, or an error
-func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
+func (pi *partitionIterator) NextPartition() (sif.Partition, func(), error) {
 	pi.lock.Lock()
 	defer pi.lock.Unlock()
 	colTypes := pi.schema.ColumnTypes()
@@ -146,14 +146,14 @@ func (pi *partitionIterator) NextPartition() (sif.Partition, error) {
 		break
 	case err := <-errorChan:
 		// close(errorChan) other routines might need to write errors
-		return nil, err
+		return nil, nil, err
 	}
 
 	// if we fetched fewer than the partition size, then there's no more rows left
 	if part.GetNumRows() < pi.parser.PartitionSize() {
 		pi.done()
 	}
-	return part, nil
+	return part, nil, nil
 }
 
 func (pi *partitionIterator) done() {

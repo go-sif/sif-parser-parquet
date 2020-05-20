@@ -49,6 +49,8 @@ github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-sif/sif v0.0.0-20200513041654-2f54577756ea h1:zb3jLZiB9EOARduCwKpUF8ry08jlaOKf3Q+9Uue2NPQ=
 github.com/go-sif/sif v0.0.0-20200513041654-2f54577756ea/go.mod h1:/G3+ze0FoG0uAzrvrxtmucQlVJ6iBfdGYzQ1gdi9qgc=
+github.com/go-sif/sif v0.0.0-20200520005205-e99f8baeb897 h1:H3uZjy/PrPKD0B44jjrOK0exAdPv0gdt7uA9Lvc6g4Y=
+github.com/go-sif/sif v0.0.0-20200520005205-e99f8baeb897/go.mod h1:ga0n7xt4S49ZYgS23uMO0woGvkgrpcnBXL9XLH0nkrk=
 github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/gofrs/uuid v3.2.0+incompatible h1:y12jRkkFxsd7GpqdSZ+/KCs/fJbqpEXSGd4+jfEaewE=
 github.com/gofrs/uuid v3.2.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=

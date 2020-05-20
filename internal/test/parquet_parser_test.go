@@ -89,7 +89,7 @@ func TestParquetParser(t *testing.T) {
 		ps, err := pl.Load(parser, schema)
 		require.Nil(t, err)
 		for ps.HasNextPartition() {
-			part, err := ps.NextPartition()
+			part, _, err := ps.NextPartition()
 			if _, ok := err.(errors.NoMorePartitionsError); !ok {
 				require.Nil(t, err)
 			}
